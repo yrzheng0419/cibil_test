@@ -1,0 +1,136 @@
+---
+const navLinks = [
+  { href: '/', labelEn: 'Home', labelZh: '首頁', key: 'home' },
+  { href: '/publications', labelEn: 'Publications', labelZh: '發表', key: 'publications' },
+  { href: '/research', labelEn: 'Research', labelZh: '研究領域', key: 'research' },
+  { href: '/team', labelEn: 'Team', labelZh: '團隊', key: 'team' },
+  { href: '/activities', labelEn: 'Activities', labelZh: '活動', key: 'activities' },
+];
+const currentPath = Astro.url.pathname;
+---
+
+<nav
+  id="navbar"
+  class="sticky top-0 z-50 w-full transition-all duration-200"
+  style="background: #0A4A5E;"
+>
+  <div class="max-w-6xl mx-auto px-4 sm:px-6 flex items-center justify-between h-14">
+    <!-- Logo -->
+    <a href="/" class="flex items-center gap-2 flex-shrink-0">
+      <img
+        src="/assets/logo/CIBI_Lab_logo.png"
+        alt="CIBI Lab"
+        class="h-8 w-auto object-contain"
+        onerror="this.style.display='none'; this.nextElementSibling.style.display='block';"
+      />
+      <span style="display:none; color:white; font-weight:500; font-size:1rem;">CIBI Lab</span>
+    </a>
+
+    <!-- Nav links -->
+    <div class="hidden md:flex items-center gap-6">
+      {navLinks.map(link => {
+        const isActive = currentPath === link.href || (link.href !== '/' && currentPath.startsWith(link.href));
+        return (
+          <a
+            href={link.href}
+            class={`nav-link text-sm transition-colors duration-150 ${isActive
+              ? 'font-medium border-b border-brand-mid'
+              : 'text-brand-light hover:text-white'
+            }`}
+            style={isActive ? 'color:#fff; border-bottom: 1.5px solid #4BA5BF;' : ''}
+            data-en={link.labelEn}
+            data-zh={link.labelZh}
+          >
+            {link.labelEn}
+          </a>
+        );
+      })}
+    </div>
+
+    <!-- Lang toggle + mobile menu -->
+    <div class="flex items-center gap-3">
+      <button
+        id="lang-toggle"
+        class="px-3 py-1 rounded text-sm font-medium transition-colors"
+        style="background:#162A30; color:#fff;"
+        aria-label="Toggle language"
+      >
+        中
+      </button>
+
+      <!-- Mobile hamburger -->
+      <button id="mobile-menu-btn" class="md:hidden text-white focus:outline-none" aria-label="Open menu">
+        <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h16"/>
+        </svg>
+      </button>
+    </div>
+  </div>
+
+  <!-- Mobile menu -->
+  <div id="mobile-menu" class="hidden md:hidden px-4 pb-3 bg-brand-dark">
+    {navLinks.map(link => (
+      <a
+        href={link.href}
+        class="block py-2 text-sm text-brand-light hover:text-white nav-link"
+        data-en={link.labelEn}
+        data-zh={link.labelZh}
+      >
+        {link.labelEn}
+      </a>
+    ))}
+  </div>
+</nav>
+
+<script>
+  function initNavbar() {
+    const navbar = document.getElementById('navbar');
+    const langToggle = document.getElementById('lang-toggle');
+    const mobileMenuBtn = document.getElementById('mobile-menu-btn');
+    const mobileMenu = document.getElementById('mobile-menu');
+
+    // Scroll blur effect
+    const onScroll = () => {
+      if (!navbar) return;
+      if (window.scrollY > 60) {
+        navbar.style.backdropFilter = 'blur(12px)';
+        navbar.style.background = 'rgba(10,74,94,0.85)';
+      } else {
+        navbar.style.backdropFilter = '';
+        navbar.style.background = '#0A4A5E';
+      }
+    };
+    window.addEventListener('scroll', onScroll, { passive: true });
+
+    // Lang toggle
+    const applyLang = (lang: string) => {
+      document.documentElement.setAttribute('data-lang', lang);
+      localStorage.setItem('lang', lang);
+      if (langToggle) langToggle.textContent = lang === 'en' ? '中' : 'EN';
+      document.querySelectorAll('[data-en][data-zh]').forEach((el) => {
+        (el as HTMLElement).textContent = lang === 'en'
+          ? (el as HTMLElement).dataset.en || ''
+          : (el as HTMLElement).dataset.zh || '';
+      });
+      // Dispatch custom event for dynamic content
+      document.dispatchEvent(new CustomEvent('langchange', { detail: { lang } }));
+    };
+
+    const savedLang = localStorage.getItem('lang') || 'en';
+    applyLang(savedLang);
+
+    langToggle?.addEventListener('click', () => {
+      const current = localStorage.getItem('lang') || 'en';
+      applyLang(current === 'en' ? 'zh' : 'en');
+    });
+
+    // Mobile menu
+    mobileMenuBtn?.addEventListener('click', () => {
+      mobileMenu?.classList.toggle('hidden');
+    });
+  }
+
+  // Run on initial load and after Astro page transitions
+  initNavbar();
+  document.addEventListener('astro:after-swap', initNavbar);
+</script>

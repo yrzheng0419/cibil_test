@@ -1,0 +1,170 @@
+---
+import BaseLayout from '../layouts/BaseLayout.astro';
+---
+
+<BaseLayout title="Publications">
+  <section class="max-w-4xl mx-auto px-4 sm:px-6 pt-14 pb-24">
+    <h1 class="text-3xl font-medium mb-10" style="color: var(--color-heading);">
+      <span data-en="Publications" data-zh="發表論文">Publications</span>
+    </h1>
+
+    <div id="pub-container">
+      <p class="text-sm" style="color: var(--color-muted);">Loading publications…</p>
+    </div>
+  </section>
+
+  <!-- Back to top -->
+  <button
+    id="back-to-top"
+    aria-label="Back to top"
+    class="fixed bottom-6 right-6 w-11 h-11 rounded-full flex items-center justify-center shadow-md transition-colors duration-150 opacity-0 pointer-events-none"
+    style="background: var(--color-brand);"
+  >
+    <svg class="w-5 h-5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 15l7-7 7 7"/>
+    </svg>
+  </button>
+</BaseLayout>
+
+<script>
+  import anime from 'animejs/lib/anime.es.js';
+  import { fetchPublications } from '../lib/parsePublications';
+  import { SHEETS } from '../constants/sheets';
+
+  const DOMAIN_CLASS: Record<string, string> = {
+    'Medical Image': 'tag-medical',
+    'Smart Agriculture': 'tag-agri',
+    'Medical Data': 'tag-data',
+    'Biosensing': 'tag-biosense',
+  };
+
+  const DOMAIN_ZH: Record<string, string> = {
+    'Medical Image': '醫療影像',
+    'Smart Agriculture': '智慧農業',
+    'Medical Data': '醫療數據',
+    'Biosensing': '生物感測',
+  };
+
+  async function renderPublications() {
+    const container = document.getElementById('pub-container');
+    if (!container) return;
+
+    let pubs;
+    try {
+      pubs = await fetchPublications(SHEETS.publications);
+    } catch {
+      container.innerHTML = '<p style="color:var(--color-muted); font-size:0.875rem;">Unable to load publications. Please check the Google Sheets URL in constants/sheets.ts.</p>';
+      return;
+    }
+
+    // Sort and group by year desc
+    pubs.sort((a, b) => b.year - a.year);
+    const byYear = new Map<number, typeof pubs>();
+    for (const p of pubs) {
+      if (!byYear.has(p.year)) byYear.set(p.year, []);
+      byYear.get(p.year)!.push(p);
+    }
+
+    const lang = localStorage.getItem('lang') || 'en';
+    let html = '';
+
+    for (const [year, items] of byYear) {
+      html += `<div class="pub-year-group mb-10 anim-hidden">
+        <h2 class="text-xl font-medium mb-4 pub-year-heading" style="color:var(--color-heading);">${year}</h2>
+        <div class="space-y-4">`;
+
+      for (const p of items) {
+        const typeLabel = p.pub_type === 'journal' ? 'J' : 'C';
+        const typeColor = p.pub_type === 'journal' ? '#8FADC7' : 'var(--color-brand-mid)';
+        const domainCls = DOMAIN_CLASS[p.domain] || '';
+        const domainLabel = lang === 'zh' ? (DOMAIN_ZH[p.domain] || p.domain) : p.domain;
+        const citationHtml = p.doi
+          ? `<a href="${p.doi}" target="_blank" rel="noopener" style="color:var(--color-body); text-decoration:underline; text-underline-offset:3px;">${p.citation}</a>`
+          : p.citation;
+
+        html += `<div class="pub-row flex items-start gap-3 anim-hidden">
+          <span class="flex-shrink-0 text-xs font-medium mt-0.5 w-5 text-center" style="color:${typeColor};">${typeLabel}</span>
+          <span class="flex-1 text-sm font-mono leading-relaxed" style="color:var(--color-body);">${citationHtml}</span>
+          <span class="pill ${domainCls} flex-shrink-0 text-xs" data-domain="${p.domain}">${domainLabel}</span>
+        </div>`;
+      }
+
+      html += '</div></div>';
+    }
+
+    if (!html) {
+      html = '<p style="color:var(--color-muted); font-size:0.875rem;">No publications found.</p>';
+    }
+
+    container.innerHTML = html;
+    runAnimations();
+    setupLangChange();
+  }
+
+  function runAnimations() {
+    document.querySelectorAll('.pub-year-group').forEach(group => {
+      const observer = new IntersectionObserver(entries => {
+        if (!entries[0].isIntersecting) return;
+        const heading = group.querySelector('.pub-year-heading');
+        if (heading) {
+          anime({ targets: heading, opacity: [0, 1], translateX: [-8, 0], duration: 350, easing: 'easeOutQuad' });
+        }
+        const rows = Array.from(group.querySelectorAll('.pub-row'));
+        anime({
+          targets: rows,
+          opacity: [0, 1],
+          translateY: [8, 0],
+          delay: anime.stagger(40),
+          duration: 300,
+          easing: 'easeOutQuad',
+        });
+        anime({ targets: group as HTMLElement, opacity: [0, 1], duration: 1 });
+        observer.disconnect();
+      }, { threshold: 0.1 });
+      observer.observe(group);
+    });
+  }
+
+  function setupLangChange() {
+    document.addEventListener('langchange', (e) => {
+      const lang = (e as CustomEvent).detail.lang;
+      document.querySelectorAll('[data-domain]').forEach(el => {
+        const domain = (el as HTMLElement).dataset.domain || '';
+        (el as HTMLElement).textContent = lang === 'zh' ? (DOMAIN_ZH[domain] || domain) : domain;
+      });
+    });
+  }
+
+  // Back to top
+  function initBackToTop() {
+    const btn = document.getElementById('back-to-top');
+    if (!btn) return;
+    let visible = false;
+
+    window.addEventListener('scroll', () => {
+      const shouldShow = window.scrollY > 400;
+      if (shouldShow && !visible) {
+        visible = true;
+        btn.classList.remove('pointer-events-none');
+        anime({ targets: btn, opacity: [0, 1], translateY: [16, 0], duration: 250, easing: 'easeOutQuad' });
+      } else if (!shouldShow && visible) {
+        visible = false;
+        anime({
+          targets: btn, opacity: [1, 0], translateY: [0, 16], duration: 200, easing: 'easeInQuad',
+          complete: () => btn.classList.add('pointer-events-none'),
+        });
+      }
+    }, { passive: true });
+
+    btn.addEventListener('click', () => window.scrollTo({ top: 0, behavior: 'smooth' }));
+    btn.addEventListener('mouseenter', () => btn.style.background = 'var(--color-brand-dark)');
+    btn.addEventListener('mouseleave', () => btn.style.background = 'var(--color-brand)');
+  }
+
+  renderPublications();
+  initBackToTop();
+  document.addEventListener('astro:after-swap', () => {
+    renderPublications();
+    initBackToTop();
+  });
+</script>

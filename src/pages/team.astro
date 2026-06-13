@@ -1,0 +1,158 @@
+---
+import BaseLayout from '../layouts/BaseLayout.astro';
+---
+
+<BaseLayout title="Team">
+  <section class="max-w-6xl mx-auto px-4 sm:px-6 pt-14 pb-24">
+    <h1 class="text-3xl font-medium mb-10" style="color: var(--color-heading);">
+      <span data-en="Team" data-zh="團隊">Team</span>
+    </h1>
+    <div id="team-container">
+      <p class="text-sm" style="color: var(--color-muted);">Loading team…</p>
+    </div>
+  </section>
+</BaseLayout>
+
+<script>
+  import anime from 'animejs/lib/anime.es.js';
+  import { fetchMembers } from '../lib/parseMembers';
+  import { SHEETS } from '../constants/sheets';
+  import type { Member } from '../types/index';
+
+  const GROUP_TAG: Record<string, { en: string; zh: string; cls: string }> = {
+    ai:         { en: 'AI',        zh: 'AI',    cls: 'tag-group-ai' },
+    statistics: { en: 'Statistics', zh: '統計', cls: 'tag-group-statistics' },
+    ra:         { en: 'RA',        zh: '研究助理', cls: 'tag-group-ra' },
+  };
+
+  const DEGREE_LABEL: Record<string, { en: string; zh: string }> = {
+    ms:  { en: 'M.S.', zh: '碩士' },
+    phd: { en: 'Ph.D.', zh: '博士' },
+    ra:  { en: 'RA', zh: '研究助理' },
+  };
+
+  function photoSrc(filename: string | null) {
+    return filename ? `/assets/members/${filename}` : '/assets/members/default.jpg';
+  }
+
+  function memberCard(m: Member, lang: string): string {
+    const name = lang === 'zh' ? (m.name_zh || m.name_en) : m.name_en;
+    const title = lang === 'zh' ? (m.research_title_zh || m.research_title_en) : m.research_title_en;
+    const grp = GROUP_TAG[m.group];
+    const grpLabel = lang === 'zh' ? grp.zh : grp.en;
+    const emailHtml = m.email
+      ? `<a href="mailto:${m.email}" class="text-xs block mt-1 truncate" style="color:var(--color-brand);">${m.email}</a>`
+      : '';
+
+    return `<div class="member-card anim-hidden flex flex-col" style="width:120px;">
+      <div style="width:120px; aspect-ratio:3/4; background:var(--color-brand-wash); border-radius:8px; overflow:hidden;">
+        <img src="${photoSrc(m.photo_filename)}" alt="${m.name_en}" style="width:100%; height:100%; object-fit:cover;"
+          onerror="this.parentElement.innerHTML='<div style=\\'width:100%;height:100%;display:flex;align-items:center;justify-content:center;\\'>\\</div>'" />
+      </div>
+      <p class="text-xs font-medium mt-2 leading-snug" style="color:var(--color-heading);">${name}</p>
+      <span class="pill ${grp.cls} text-xs mt-1" style="font-size:0.65rem; padding:1px 7px;">${grpLabel}</span>
+      <p class="text-xs mt-1 leading-snug" style="color:var(--color-body);">${title}</p>
+      ${emailHtml}
+    </div>`;
+  }
+
+  function alumniCard(m: Member, lang: string): string {
+    const name = lang === 'zh' ? (m.name_zh || m.name_en) : m.name_en;
+    const title = lang === 'zh' ? (m.research_title_zh || m.research_title_en) : m.research_title_en;
+    const grp = GROUP_TAG[m.group];
+    const grpLabel = lang === 'zh' ? grp.zh : grp.en;
+    const deg = DEGREE_LABEL[m.degree_type];
+    const degLabel = lang === 'zh' ? deg.zh : deg.en;
+    const titleHtml = m.thesis_url
+      ? `<a href="${m.thesis_url}" target="_blank" rel="noopener" class="text-xs leading-snug" style="color:var(--color-brand); text-decoration:underline; text-underline-offset:2px;">${title}</a>`
+      : `<p class="text-xs leading-snug" style="color:var(--color-body);">${title}</p>`;
+    const gradYear = m.year_grad ? `'${String(m.year_grad).slice(-2)}` : '';
+
+    return `<div class="member-card anim-hidden flex flex-col" style="width:140px;">
+      <div style="width:140px; aspect-ratio:3/4; background:var(--color-brand-wash); border-radius:8px; overflow:hidden;">
+        <img src="${photoSrc(m.photo_filename)}" alt="${m.name_en}" style="width:100%; height:100%; object-fit:cover;"
+          onerror="this.parentElement.innerHTML='<div style=\\'width:100%;height:100%;\\'>\\</div>'" />
+      </div>
+      <p class="text-xs font-medium mt-2 leading-snug" style="color:var(--color-heading);">${name} ${gradYear}</p>
+      <div class="flex gap-1 mt-1 flex-wrap">
+        <span class="pill text-xs" style="font-size:0.65rem; padding:1px 7px; background:#E6F1FB; color:#0C447C;">${degLabel}</span>
+        <span class="pill ${grp.cls} text-xs" style="font-size:0.65rem; padding:1px 7px;">${grpLabel}</span>
+      </div>
+      <div class="mt-1">${titleHtml}</div>
+    </div>`;
+  }
+
+  function sectionHtml(title: string, cards: string[], id: string): string {
+    if (!cards.length) return '';
+    return `<div class="team-section mb-14 anim-hidden" id="${id}">
+      <h2 class="text-xl font-medium mb-6 team-section-title" style="color:var(--color-heading);">${title}</h2>
+      <div class="flex flex-wrap gap-6">${cards.join('')}</div>
+    </div>`;
+  }
+
+  async function renderTeam() {
+    const container = document.getElementById('team-container');
+    if (!container) return;
+
+    let members: Member[] = [];
+    try {
+      members = await fetchMembers(SHEETS.members);
+    } catch {
+      container.innerHTML = '<p style="color:var(--color-muted); font-size:0.875rem;">Unable to load team data.</p>';
+      return;
+    }
+
+    const lang = localStorage.getItem('lang') || 'en';
+
+    const ms = members.filter(m => m.status === 'current' && m.degree_type === 'ms')
+      .sort((a, b) => a.year_joined - b.year_joined);
+    const phd = members.filter(m => m.status === 'current' && m.degree_type === 'phd')
+      .sort((a, b) => a.year_joined - b.year_joined);
+    const alumni = members.filter(m => m.status === 'alumni')
+      .sort((a, b) => (b.year_grad ?? 0) - (a.year_grad ?? 0));
+    const ra = members.filter(m => m.status === 'current' && m.degree_type === 'ra');
+
+    const msTitleEn = 'MSc Students', msTitleZh = '碩士生';
+    const phdTitleEn = 'PhD Students', phdTitleZh = '博士生';
+    const alumniTitleEn = 'Alumni', alumniTitleZh = '校友';
+    const raTitleEn = 'Research Assistants', raTitleZh = '研究助理';
+
+    const msTitle = lang === 'zh' ? msTitleZh : msTitleEn;
+    const phdTitle = lang === 'zh' ? phdTitleZh : phdTitleEn;
+    const alumniTitle = lang === 'zh' ? alumniTitleZh : alumniTitleEn;
+    const raTitle = lang === 'zh' ? raTitleZh : raTitleEn;
+
+    container.innerHTML = [
+      sectionHtml(msTitle, ms.map(m => memberCard(m, lang)), 'sec-ms'),
+      sectionHtml(phdTitle, phd.map(m => memberCard(m, lang)), 'sec-phd'),
+      sectionHtml(alumniTitle, alumni.map(m => alumniCard(m, lang)), 'sec-alumni'),
+      sectionHtml(raTitle, ra.map(m => memberCard(m, lang)), 'sec-ra'),
+    ].join('');
+
+    animateSections();
+  }
+
+  function animateSections() {
+    document.querySelectorAll('.team-section').forEach(section => {
+      const observer = new IntersectionObserver(entries => {
+        if (!entries[0].isIntersecting) return;
+        anime({ targets: section.querySelector('.team-section-title'), opacity: [0, 1], translateY: [10, 0], duration: 350, easing: 'easeOutQuad' });
+        anime({
+          targets: Array.from(section.querySelectorAll('.member-card')),
+          opacity: [0, 1],
+          translateX: [-16, 0],
+          delay: anime.stagger(80),
+          duration: 400,
+          easing: 'easeOutQuad',
+        });
+        anime({ targets: section as HTMLElement, opacity: [0, 1], duration: 1 });
+        observer.disconnect();
+      }, { threshold: 0.1 });
+      observer.observe(section);
+    });
+  }
+
+  renderTeam();
+  document.addEventListener('langchange', renderTeam);
+  document.addEventListener('astro:after-swap', renderTeam);
+</script>

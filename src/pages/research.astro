@@ -1,0 +1,205 @@
+---
+import BaseLayout from '../layouts/BaseLayout.astro';
+
+const domains = ['Medical Image', 'Smart Agriculture', 'Medical Data', 'Biosensing'] as const;
+
+const domainIcons: Record<string, string> = {
+  'Medical Image': `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="18" height="18" rx="2"/><path d="M3 9h18M9 21V9"/><circle cx="15" cy="15" r="2"/></svg>`,
+  'Smart Agriculture': `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M12 2C6.5 2 2 6.5 2 12s4.5 10 10 10 10-4.5 10-10S17.5 2 12 2z"/><path d="M12 8c-2.2 0-4 1.8-4 4s1.8 4 4 4 4-1.8 4-4-1.8-4-4-4z"/><path d="M12 2v4M12 18v4M2 12h4M18 12h4"/></svg>`,
+  'Medical Data': `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z"/></svg>`,
+  'Biosensing': `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M4.5 12.5l3 3 5-6 3 3 4-4"/><circle cx="12" cy="12" r="9"/></svg>`,
+};
+---
+
+<BaseLayout title="Research">
+  <section class="max-w-6xl mx-auto px-4 sm:px-6 pt-14 pb-24">
+    <h1 class="text-3xl font-medium mb-10" style="color: var(--color-heading);">
+      <span data-en="Research" data-zh="研究領域">Research</span>
+    </h1>
+
+    <!-- Domain tab bar -->
+    <div id="domain-tabs" class="anim-hidden grid grid-cols-4 gap-0 rounded-xl overflow-hidden mb-10 border" style="border-color: var(--color-brand-light);">
+      {domains.map((domain, i) => (
+        <button
+          class="domain-tab flex flex-col items-center gap-2 py-4 px-2 text-sm font-medium transition-colors duration-150"
+          data-domain={domain}
+          style={i === 0 ? 'background: var(--color-brand); color: #fff;' : 'background: var(--color-surface); color: var(--color-body);'}
+        >
+          <span class="w-6 h-6 hidden md:block" set:html={domainIcons[domain]} />
+          <span class="hidden md:inline" data-en={domain} data-zh={
+            domain === 'Medical Image' ? '醫療影像' :
+            domain === 'Smart Agriculture' ? '智慧農業' :
+            domain === 'Medical Data' ? '醫療數據' : '生物感測'
+          }>{domain}</span>
+          <!-- Mobile: icon only -->
+          <span class="w-6 h-6 md:hidden" set:html={domainIcons[domain]} />
+        </button>
+      ))}
+    </div>
+
+    <!-- Domain content -->
+    <div id="domain-content" class="anim-hidden">
+      <p class="text-sm" style="color:var(--color-muted);">Loading…</p>
+    </div>
+  </section>
+</BaseLayout>
+
+<script>
+  import anime from 'animejs/lib/anime.es.js';
+  import { fetchPublications } from '../lib/parsePublications';
+  import { fetchMembers } from '../lib/parseMembers';
+  import { SHEETS } from '../constants/sheets';
+
+  const DOMAIN_DESCS: Record<string, { en: string; zh: string }> = {
+    'Medical Image': {
+      en: 'We develop computational methods for CT reconstruction, X-ray phase-contrast imaging, PET, and AI-assisted diagnosis — fusing imaging data with clinical records for multimodal insight.',
+      zh: '開發電腦斷層掃描重建、X光相位對比成像、PET 及 AI 輔助診斷的計算方法，融合影像資料與病歷資訊，實現多模態洞見。',
+    },
+    'Smart Agriculture': {
+      en: 'AIoT systems integrating computer vision with robotic control for precision farming — pest monitoring, crop yield prediction, and honeybee behaviour analysis.',
+      zh: '整合電腦視覺與機器人控制的 AIoT 系統，應用於精準農業——病蟲害監測、作物產量預測與蜜蜂行為分析。',
+    },
+    'Medical Data': {
+      en: 'Statistical and machine learning methods applied to electronic health records, clinical time-series, and multimodal patient data for early disease prediction and risk stratification.',
+      zh: '將統計與機器學習方法應用於電子病歷、臨床時間序列與多模態病患資料，實現疾病早期預測與風險分層。',
+    },
+    'Biosensing': {
+      en: 'Rapid diagnostic kit development, aptamer-protein binding prediction, and IoT-integrated biosensor design for clinical and environmental monitoring.',
+      zh: '快篩檢測試劑研發、適體與蛋白質結合預測，以及 IoT 整合生物感測器設計，應用於臨床與環境監測。',
+    },
+  };
+
+  const DOMAIN_CLASS: Record<string, string> = {
+    'Medical Image': 'tag-medical',
+    'Smart Agriculture': 'tag-agri',
+    'Medical Data': 'tag-data',
+    'Biosensing': 'tag-biosense',
+  };
+
+  let allPubs: Awaited<ReturnType<typeof fetchPublications>> = [];
+  let allMembers: Awaited<ReturnType<typeof fetchMembers>> = [];
+  let currentDomain = 'Medical Image';
+
+  async function loadData() {
+    try {
+      [allPubs, allMembers] = await Promise.all([
+        fetchPublications(SHEETS.publications),
+        fetchMembers(SHEETS.members),
+      ]);
+    } catch {
+      // silently use empty arrays — domain descriptions still work
+    }
+  }
+
+  function renderDomain(domain: string) {
+    const lang = localStorage.getItem('lang') || 'en';
+    const content = document.getElementById('domain-content');
+    if (!content) return;
+
+    const desc = DOMAIN_DESCS[domain];
+    const recentPubs = allPubs
+      .filter(p => p.domain === domain)
+      .sort((a, b) => b.year - a.year)
+      .slice(0, 3);
+
+    const recentTheses = allMembers
+      .filter(m => m.status === 'alumni' && m.domain === domain)
+      .sort((a, b) => (b.year_grad ?? 0) - (a.year_grad ?? 0))
+      .slice(0, 3);
+
+    const noRecordsEn = 'No records yet.';
+    const noRecordsZh = '尚無資料。';
+    const noRecords = lang === 'zh' ? noRecordsZh : noRecordsEn;
+
+    const pubsHtml = recentPubs.length
+      ? recentPubs.map(p => `
+          <div class="research-row flex items-start gap-3 anim-hidden">
+            <span class="flex-shrink-0 text-xs font-medium mt-0.5" style="color:#8FADC7; width:1.25rem; text-align:center;">${p.pub_type === 'journal' ? 'J' : 'C'}</span>
+            <span class="text-sm font-mono leading-relaxed" style="color:var(--color-body);">${p.doi ? `<a href="${p.doi}" target="_blank" rel="noopener" style="color:var(--color-body); text-decoration:underline; text-underline-offset:3px;">${p.citation}</a>` : p.citation}</span>
+          </div>`).join('')
+      : `<p class="text-sm" style="color:var(--color-muted);">${noRecords}</p>`;
+
+    const thesesHtml = recentTheses.length
+      ? recentTheses.map(m => {
+          const title = lang === 'zh' ? (m.research_title_zh || m.research_title_en) : m.research_title_en;
+          const name = lang === 'zh' ? (m.name_zh || m.name_en) : m.name_en;
+          const titleEl = m.thesis_url
+            ? `<a href="${m.thesis_url}" target="_blank" rel="noopener" style="color:var(--color-brand); text-decoration:underline; text-underline-offset:3px;">${title}</a>`
+            : title;
+          return `<div class="research-row anim-hidden">
+            <p class="text-sm font-medium" style="color:var(--color-heading);">${titleEl}</p>
+            <p class="text-xs mt-0.5" style="color:var(--color-muted);">${name}${m.year_grad ? ` · ${m.year_grad}` : ''}</p>
+          </div>`;
+        }).join('')
+      : `<p class="text-sm" style="color:var(--color-muted);">${noRecords}</p>`;
+
+    const descText = lang === 'zh' ? desc.zh : desc.en;
+    const pubsLabel = lang === 'zh' ? '近期發表' : 'Recent Publications';
+    const thesesLabel = lang === 'zh' ? '近期論文' : 'Recent Theses';
+
+    content.innerHTML = `
+      <p class="text-sm mb-8 leading-relaxed max-w-2xl" style="color:var(--color-body);">${descText}</p>
+      <div class="grid grid-cols-1 sm:grid-cols-2 gap-8">
+        <div>
+          <h3 class="text-xs font-medium uppercase tracking-wider mb-4" style="color:var(--color-brand-mid);">${pubsLabel}</h3>
+          <div class="space-y-4">${pubsHtml}</div>
+        </div>
+        <div>
+          <h3 class="text-xs font-medium uppercase tracking-wider mb-4" style="color:var(--color-brand-mid);">${thesesLabel}</h3>
+          <div class="space-y-4">${thesesHtml}</div>
+        </div>
+      </div>`;
+
+    anime({
+      targets: Array.from(content.querySelectorAll('.research-row')),
+      opacity: [0, 1],
+      translateY: [8, 0],
+      delay: anime.stagger(60),
+      duration: 300,
+      easing: 'easeOutQuad',
+    });
+    anime({ targets: content, opacity: [0, 1], translateY: [8, 0], duration: 300, easing: 'easeOutQuad' });
+  }
+
+  function initTabs() {
+    const tabs = document.querySelectorAll('.domain-tab');
+    tabs.forEach(tab => {
+      tab.addEventListener('click', () => {
+        const domain = (tab as HTMLElement).dataset.domain || '';
+        currentDomain = domain;
+
+        tabs.forEach(t => {
+          (t as HTMLElement).style.background = 'var(--color-surface)';
+          (t as HTMLElement).style.color = 'var(--color-body)';
+        });
+        (tab as HTMLElement).style.background = 'var(--color-brand)';
+        (tab as HTMLElement).style.color = '#fff';
+
+        renderDomain(domain);
+      });
+    });
+
+    // Animate tab bar in
+    const tabBar = document.getElementById('domain-tabs');
+    if (tabBar) {
+      const observer = new IntersectionObserver(entries => {
+        if (entries[0].isIntersecting) {
+          anime({ targets: tabBar, opacity: [0, 1], duration: 300, easing: 'easeOutQuad' });
+          observer.disconnect();
+        }
+      }, { threshold: 0.1 });
+      observer.observe(tabBar);
+    }
+  }
+
+  async function init() {
+    await loadData();
+    initTabs();
+    renderDomain(currentDomain);
+
+    document.addEventListener('langchange', () => renderDomain(currentDomain));
+  }
+
+  init();
+  document.addEventListener('astro:after-swap', init);
+</script>

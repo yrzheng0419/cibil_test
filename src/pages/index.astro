@@ -1,0 +1,255 @@
+---
+import BaseLayout from '../layouts/BaseLayout.astro';
+---
+
+<BaseLayout title="Home">
+  <!-- ─── HERO ─── -->
+  <section class="max-w-6xl mx-auto px-4 sm:px-6 pt-16 pb-20">
+    <div class="flex flex-col md:flex-row md:items-start gap-10 md:gap-16">
+
+      <!-- Left: text -->
+      <div class="flex-1 anim-hidden" id="hero-text">
+        <p class="text-xs font-medium tracking-widest mb-3" style="color: var(--color-brand-mid);">
+          <span data-en="WELCOME TO THE" data-zh="歡迎來到">WELCOME TO THE</span>
+        </p>
+        <h1 class="text-3xl sm:text-4xl font-medium leading-tight mb-2" style="color: var(--color-heading);">
+          <span data-en="Computational Intelligence in" data-zh="智慧演算生醫影像實驗室">Computational Intelligence in</span>
+          <br />
+          <span data-en="Biomedical Imaging Laboratory" data-zh="">Biomedical Imaging Laboratory</span>
+        </h1>
+        <p class="text-sm mt-3 mb-1" style="color: var(--color-brand-mid);">
+          <span data-en="Department of Biomechatronics Engineering, National Taiwan University" data-zh="國立臺灣大學　生物機電工程學系">
+            Department of Biomechatronics Engineering, National Taiwan University
+          </span>
+        </p>
+        <p class="text-sm leading-relaxed mt-4 max-w-xl" style="color: var(--color-body);">
+          <span
+            data-en="CIBI Lab develops AI methods that fuse heterogeneous data — medical images with clinical records, agricultural vision with robotic control — to generate insights that single-modality approaches cannot reach. We build tools that matter, grounded in rigorous mathematics and driven by real-world problems."
+            data-zh="智慧演算生醫影像實驗室以多模態人工智慧為核心，融合醫學影像與病歷資訊、農業視覺與機器人控制等異質資料，挖掘單一模態方法所無法觸及的洞見。我們相信嚴謹的數理基礎與真實問題的驅動，是每一次突破的起點。">
+            CIBI Lab develops AI methods that fuse heterogeneous data — medical images with clinical records, agricultural vision with robotic control — to generate insights that single-modality approaches cannot reach. We build tools that matter, grounded in rigorous mathematics and driven by real-world problems.
+          </span>
+        </p>
+      </div>
+
+      <!-- Right: CTA pills -->
+      <div class="flex flex-col gap-4 mt-2 md:mt-10 flex-shrink-0" id="hero-pills">
+        <a
+          href="/research"
+          id="cta-research"
+          class="anim-hidden pill-cta flex items-center gap-2 px-7 py-3 rounded-full text-sm font-medium text-white transition-all duration-200"
+          style="background: var(--color-brand); white-space: nowrap;"
+          transition:animate="slide"
+        >
+          <span data-en="Explore research" data-zh="探索研究">Explore research</span>
+          <svg class="arrow-icon w-4 h-4 transition-transform duration-200" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"/>
+          </svg>
+        </a>
+        <a
+          href="/team"
+          id="cta-team"
+          class="anim-hidden pill-cta flex items-center gap-2 px-7 py-3 rounded-full text-sm font-medium transition-all duration-200"
+          style="border: 1.5px solid var(--color-brand-light); color: var(--color-body); white-space: nowrap;"
+          transition:animate="slide"
+        >
+          <span data-en="Meet the team" data-zh="認識團隊">Meet the team</span>
+          <svg class="arrow-icon w-4 h-4 transition-transform duration-200" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"/>
+          </svg>
+        </a>
+      </div>
+    </div>
+  </section>
+
+  <!-- ─── PI PROFILE ─── -->
+  <section class="max-w-6xl mx-auto px-4 sm:px-6 pb-20">
+    <div class="flex flex-col md:flex-row gap-10 md:gap-12">
+
+      <!-- Left: photo + name -->
+      <div class="flex-shrink-0 w-full md:w-48 anim-hidden" id="pi-photo-col">
+        <div class="overflow-hidden rounded-lg mb-4" style="aspect-ratio: 3/4; background: var(--color-brand-wash);">
+          <img
+            src="/assets/pi/chou-cheng-ying.jpg"
+            alt="Prof. Cheng-Ying Chou"
+            class="w-full h-full object-cover"
+            onerror="this.parentElement.innerHTML='<div style=\'width:100%;height:100%;display:flex;align-items:center;justify-content:center;color:var(--color-brand-mid);font-size:0.75rem;\'>Photo</div>'"
+          />
+        </div>
+        <h2 class="text-lg font-medium" style="color: var(--color-heading);">
+          <span data-en="Prof. Cheng-Ying Chou" data-zh="周呈霙 教授">Prof. Cheng-Ying Chou</span>
+        </h2>
+        <p class="text-xs mt-1" style="color: var(--color-muted);">
+          <span
+            data-en="Department of Biomechatronics Engineering, NTU"
+            data-zh="國立臺灣大學　生物機電工程學系">
+            Department of Biomechatronics Engineering, NTU
+          </span>
+        </p>
+      </div>
+
+      <!-- Right: two sub-columns -->
+      <div class="flex-1 grid grid-cols-1 sm:grid-cols-2 gap-8">
+
+        <!-- Sub-col 1: Joint appointments + Education -->
+        <div>
+          <!-- Joint appointments -->
+          <div class="anim-hidden pi-block mb-5">
+            <h3 class="text-xs font-medium uppercase tracking-wider mb-2" style="color: var(--color-brand-mid);">
+              <span data-en="Joint Appointments" data-zh="合聘單位">Joint Appointments</span>
+            </h3>
+            <ul class="text-sm space-y-1" style="color: var(--color-body);">
+              <li><span data-en="Master Program in Statistics" data-zh="統計碩士學位學程">Master Program in Statistics</span></li>
+              <li><span data-en="Medical Devices and Imaging System" data-zh="醫療器材與醫學影像研究所">Medical Devices and Imaging System</span></li>
+              <li><span data-en="Global Undergraduate Program in Semiconductors" data-zh="國際半導體學士學位學程">Global Undergraduate Program in Semiconductors</span></li>
+            </ul>
+          </div>
+
+          <hr style="border-color: #EBF2FA; margin-bottom: 1.25rem;" />
+
+          <!-- Education timeline -->
+          <div class="anim-hidden pi-block">
+            <h3 class="text-xs font-medium uppercase tracking-wider mb-3" style="color: var(--color-brand-mid);">
+              <span data-en="Education & Experience" data-zh="學經歷">Education &amp; Experience</span>
+            </h3>
+            <div class="space-y-4">
+              {[
+                { years: '2000–2005', en_role: 'Ph.D., Chemical Engineering', zh_role: '化學工程博士', en_inst: 'Rice University', zh_inst: '萊斯大學' },
+                { years: '2005–2007', en_role: 'Senior Research Scientist', zh_role: '資深研究員', en_inst: 'Illinois Institute of Technology, Biomedical Engineering', zh_inst: '伊黎諾理工學院，生物醫學工程系' },
+                { years: '2007–present', en_role: 'Professor, NTU Biomechatronics Engineering', zh_role: '教授，國立臺灣大學生物機電工程學系', en_inst: '', zh_inst: '' },
+              ].map(item => (
+                <div class="flex gap-3">
+                  <div class="flex flex-col items-center">
+                    <div class="w-2 h-2 rounded-full mt-1 flex-shrink-0" style="background: var(--color-brand);"></div>
+                    <div class="w-px flex-1 mt-1" style="background: var(--color-brand-light);"></div>
+                  </div>
+                  <div class="pb-2">
+                    <p class="text-xs" style="color: var(--color-muted);">{item.years}</p>
+                    <p class="text-sm font-medium" style="color: var(--color-heading);">
+                      <span data-en={item.en_role} data-zh={item.zh_role}>{item.en_role}</span>
+                    </p>
+                    {item.en_inst && (
+                      <p class="text-xs" style="color: var(--color-body);">
+                        <span data-en={item.en_inst} data-zh={item.zh_inst}>{item.en_inst}</span>
+                      </p>
+                    )}
+                  </div>
+                </div>
+              ))}
+            </div>
+          </div>
+        </div>
+
+        <!-- Sub-col 2: Research interests + Courses -->
+        <div>
+          <!-- Research interests -->
+          <div class="anim-hidden pi-block mb-5">
+            <h3 class="text-xs font-medium uppercase tracking-wider mb-2" style="color: var(--color-brand-mid);">
+              <span data-en="Research Interests" data-zh="研究興趣">Research Interests</span>
+            </h3>
+            <div class="flex flex-wrap gap-2">
+              {[
+                { en: 'Medical Imaging AI', zh: '醫療影像AI技術開發', cls: 'tag-medical' },
+                { en: 'X-ray Phase Contrast Imaging', zh: 'X光相位對比成像', cls: 'tag-medical' },
+                { en: 'CT Image Reconstruction', zh: '電腦斷層掃描影像重建', cls: 'tag-medical' },
+                { en: 'Agricultural AI Applications', zh: '人工智慧之農業應用', cls: 'tag-agri' },
+                { en: 'Rapid Diagnostic Kit Development', zh: '快篩檢測試劑研發', cls: 'tag-biosense' },
+              ].map(tag => (
+                <span class={`pill ${tag.cls} text-xs`}>
+                  <span data-en={tag.en} data-zh={tag.zh}>{tag.en}</span>
+                </span>
+              ))}
+            </div>
+          </div>
+
+          <!-- Courses -->
+          <div class="anim-hidden pi-block">
+            <h3 class="text-xs font-medium uppercase tracking-wider mb-2" style="color: var(--color-brand-mid);">
+              <span data-en="Courses Taught" data-zh="開授課程">Courses Taught</span>
+            </h3>
+            <div class="flex flex-wrap gap-2">
+              {[
+                { en: 'Experimental Design and Analysis in Engineering', zh: '試驗設計之工程應用' },
+                { en: 'Probability and Statistics', zh: '機率與統計' },
+                { en: 'Exploratory Multivariate Data Analysis', zh: '探索式多變量資料分析' },
+              ].map(c => (
+                <span class="pill text-xs" style="background:#F1EFE8; color:#444441; border:1px solid #D9D5CB;">
+                  <span data-en={c.en} data-zh={c.zh}>{c.en}</span>
+                </span>
+              ))}
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+</BaseLayout>
+
+<script>
+  import anime from 'animejs/lib/anime.es.js';
+
+  function initHomeAnimations() {
+    // Hero text
+    const heroText = document.getElementById('hero-text');
+    if (heroText) {
+      anime({ targets: heroText, opacity: [0, 1], translateY: [20, 0], duration: 600, easing: 'easeOutQuad' });
+    }
+
+    // CTA pills
+    const pills = document.querySelectorAll('.pill-cta');
+    if (pills.length) {
+      anime({
+        targets: Array.from(pills),
+        opacity: [0, 1],
+        translateX: [12, 0],
+        delay: anime.stagger(120),
+        duration: 400,
+        easing: 'easeOutQuad',
+      });
+    }
+
+    // PI photo
+    const piPhoto = document.getElementById('pi-photo-col');
+    if (piPhoto) {
+      const observer = new IntersectionObserver(entries => {
+        if (entries[0].isIntersecting) {
+          anime({ targets: piPhoto, opacity: [0, 1], scale: [0.97, 1], duration: 500, easing: 'easeOutQuad' });
+          observer.disconnect();
+        }
+      }, { threshold: 0.15 });
+      observer.observe(piPhoto);
+    }
+
+    // PI blocks
+    document.querySelectorAll('.pi-block').forEach((el, i) => {
+      const observer = new IntersectionObserver(entries => {
+        if (entries[0].isIntersecting) {
+          anime({
+            targets: el,
+            opacity: [0, 1],
+            translateY: [12, 0],
+            delay: i * 100,
+            duration: 400,
+            easing: 'easeOutQuad',
+          });
+          observer.disconnect();
+        }
+      }, { threshold: 0.15 });
+      observer.observe(el);
+    });
+
+    // CTA hover effect
+    document.querySelectorAll('.pill-cta').forEach(btn => {
+      btn.addEventListener('mouseenter', () => {
+        const arrow = btn.querySelector('.arrow-icon') as HTMLElement;
+        if (arrow) anime({ targets: arrow, translateX: [0, 4], duration: 200, easing: 'easeOutQuad' });
+      });
+      btn.addEventListener('mouseleave', () => {
+        const arrow = btn.querySelector('.arrow-icon') as HTMLElement;
+        if (arrow) anime({ targets: arrow, translateX: [4, 0], duration: 200, easing: 'easeOutQuad' });
+      });
+    });
+  }
+
+  initHomeAnimations();
+  document.addEventListener('astro:after-swap', initHomeAnimations);
+</script>
