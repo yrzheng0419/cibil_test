@@ -1,11 +1,12 @@
 ---
 import BaseLayout from '../layouts/BaseLayout.astro';
+const BASE = import.meta.env.BASE_URL;
 ---
 
 <BaseLayout title="404 — Page Not Found">
   <section class="max-w-2xl mx-auto px-4 sm:px-6 pt-32 pb-24 text-center">
     <img
-      src="/assets/logo/CIBI_Lab_logo.png"
+      src={`${BASE}assets/logo/CIBI_Lab_logo.png`}
       alt="CIBI Lab"
       class="h-12 w-auto mx-auto mb-8 opacity-40"
       onerror="this.style.display='none'"
@@ -14,7 +15,7 @@ import BaseLayout from '../layouts/BaseLayout.astro';
     <p class="text-xl font-medium mb-3" style="color: var(--color-heading);">Page Not Found</p>
     <p class="text-sm mb-8" style="color: var(--color-muted);">The page you're looking for doesn't exist or has been moved.</p>
     <a
-      href="/"
+      href={BASE}
       class="inline-flex items-center gap-2 px-6 py-2.5 rounded-full text-sm font-medium text-white transition-colors duration-150"
       style="background: var(--color-brand);"
     >

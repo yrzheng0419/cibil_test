@@ -1,12 +1,23 @@
 ---
+const BASE = import.meta.env.BASE_URL; // e.g. '/cibi_test/'
+
 const navLinks = [
-  { href: '/', labelEn: 'Home', labelZh: '首頁', key: 'home' },
-  { href: '/publications', labelEn: 'Publications', labelZh: '發表', key: 'publications' },
-  { href: '/research', labelEn: 'Research', labelZh: '研究領域', key: 'research' },
-  { href: '/team', labelEn: 'Team', labelZh: '團隊', key: 'team' },
-  { href: '/activities', labelEn: 'Activities', labelZh: '活動', key: 'activities' },
+  { href: BASE,                      labelEn: 'Home',         labelZh: '首頁',   key: 'home' },
+  { href: `${BASE}publications`,     labelEn: 'Publications', labelZh: '發表',   key: 'publications' },
+  { href: `${BASE}research`,         labelEn: 'Research',     labelZh: '研究領域', key: 'research' },
+  { href: `${BASE}team`,             labelEn: 'Team',         labelZh: '團隊',   key: 'team' },
+  { href: `${BASE}activities`,       labelEn: 'Activities',   labelZh: '活動',   key: 'activities' },
 ];
+
 const currentPath = Astro.url.pathname;
+
+function isActive(linkHref: string) {
+  // Home: exact match (handle trailing slash)
+  if (linkHref === BASE) {
+    return currentPath === BASE || currentPath === BASE.replace(/\/$/, '');
+  }
+  return currentPath.startsWith(linkHref);
+}
 ---
 
 <nav
@@ -16,9 +27,9 @@ const currentPath = Astro.url.pathname;
 >
   <div class="max-w-6xl mx-auto px-4 sm:px-6 flex items-center justify-between h-14">
     <!-- Logo -->
-    <a href="/" class="flex items-center gap-2 flex-shrink-0">
+    <a href={BASE} class="flex items-center gap-2 flex-shrink-0">
       <img
-        src="/assets/logo/CIBI_Lab_logo.png"
+        src={`${BASE}assets/logo/CIBI_Lab_logo.png`}
         alt="CIBI Lab"
         class="h-8 w-auto object-contain"
         onerror="this.style.display='none'; this.nextElementSibling.style.display='block';"
@@ -29,15 +40,15 @@ const currentPath = Astro.url.pathname;
     <!-- Nav links -->
     <div class="hidden md:flex items-center gap-6">
       {navLinks.map(link => {
-        const isActive = currentPath === link.href || (link.href !== '/' && currentPath.startsWith(link.href));
+        const active = isActive(link.href);
         return (
           <a
             href={link.href}
-            class={`nav-link text-sm transition-colors duration-150 ${isActive
-              ? 'font-medium border-b border-brand-mid'
+            class={`nav-link text-sm transition-colors duration-150 ${active
+              ? 'font-medium'
               : 'text-brand-light hover:text-white'
             }`}
-            style={isActive ? 'color:#fff; border-bottom: 1.5px solid #4BA5BF;' : ''}
+            style={active ? 'color:#fff; border-bottom: 1.5px solid #4BA5BF;' : ''}
             data-en={link.labelEn}
             data-zh={link.labelZh}
           >
@@ -58,7 +69,6 @@ const currentPath = Astro.url.pathname;
         中
       </button>
 
-      <!-- Mobile hamburger -->
       <button id="mobile-menu-btn" class="md:hidden text-white focus:outline-none" aria-label="Open menu">
         <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
           <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h16"/>
@@ -89,7 +99,6 @@ const currentPath = Astro.url.pathname;
     const mobileMenuBtn = document.getElementById('mobile-menu-btn');
     const mobileMenu = document.getElementById('mobile-menu');
 
-    // Scroll blur effect
     const onScroll = () => {
       if (!navbar) return;
       if (window.scrollY > 60) {
@@ -102,7 +111,6 @@ const currentPath = Astro.url.pathname;
     };
     window.addEventListener('scroll', onScroll, { passive: true });
 
-    // Lang toggle
     const applyLang = (lang: string) => {
       document.documentElement.setAttribute('data-lang', lang);
       localStorage.setItem('lang', lang);
@@ -112,7 +120,6 @@ const currentPath = Astro.url.pathname;
           ? (el as HTMLElement).dataset.en || ''
           : (el as HTMLElement).dataset.zh || '';
       });
-      // Dispatch custom event for dynamic content
       document.dispatchEvent(new CustomEvent('langchange', { detail: { lang } }));
     };
 
@@ -124,13 +131,11 @@ const currentPath = Astro.url.pathname;
       applyLang(current === 'en' ? 'zh' : 'en');
     });
 
-    // Mobile menu
     mobileMenuBtn?.addEventListener('click', () => {
       mobileMenu?.classList.toggle('hidden');
     });
   }
 
-  // Run on initial load and after Astro page transitions
   initNavbar();
   document.addEventListener('astro:after-swap', initNavbar);
 </script>

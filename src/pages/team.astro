@@ -31,8 +31,9 @@ import BaseLayout from '../layouts/BaseLayout.astro';
     ra:  { en: 'RA', zh: '研究助理' },
   };
 
+  const BASE = import.meta.env.BASE_URL;
   function photoSrc(filename: string | null) {
-    return filename ? `/assets/members/${filename}` : '/assets/members/default.jpg';
+    return filename ? `${BASE}assets/members/${filename}` : `${BASE}assets/members/default.jpg`;
   }
 
   function memberCard(m: Member, lang: string): string {

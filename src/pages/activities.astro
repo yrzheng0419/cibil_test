@@ -21,8 +21,9 @@ import BaseLayout from '../layouts/BaseLayout.astro';
   import { SHEETS } from '../constants/sheets';
   import type { GalleryItem } from '../types/index';
 
+  const BASE = import.meta.env.BASE_URL;
   function photoSrc(filename: string) {
-    return filename ? `/assets/gallery/${filename}` : '/assets/gallery/default.jpg';
+    return filename ? `${BASE}assets/gallery/${filename}` : `${BASE}assets/gallery/default.jpg`;
   }
 
   function activityCard(item: GalleryItem, lang: string): string {
